@@ -161,13 +161,6 @@ BOOL OS_SymTableIterator_Impl(char *name, SYM_VALUE val, SYM_TYPE type, _Vx_usr_
      */
     state = &OS_VxWorks_SymbolDumpState;
 
-    if (memchr(name, 0, OS_MAX_SYM_LEN) == NULL)
-    {
-        OS_DEBUG("%s(): symbol name too long\n", __func__);
-        state->StatusCode = OS_ERR_NAME_TOO_LONG;
-        return false;
-    }
-
     /*
     ** Check to see if the maximum size of the file has been reached
     */
@@ -186,8 +179,18 @@ BOOL OS_SymTableIterator_Impl(char *name, SYM_VALUE val, SYM_TYPE type, _Vx_usr_
     /*
     ** Copy symbol name
     */
-    strncpy(symRecord.SymbolName, name, sizeof(symRecord.SymbolName) - 1);
-    symRecord.SymbolName[sizeof(symRecord.SymbolName) - 1] = 0;
+    strncpy(symRecord.SymbolName, name, OS_MAX_SYM_LEN - 1);
+
+    if (memchr(name, 0, OS_MAX_SYM_LEN) == NULL)
+    {
+        OS_DEBUG("%s(): symbol name too long\n", __func__);
+        symRecord.SymbolName[OS_MAX_SYM_LEN - 1] = 0;
+//        symRecord.SymbolName[OS_MAX_SYM_LEN - 2] = 0;
+    }
+    else
+    {
+        symRecord.SymbolName[sizeof(symRecord.SymbolName) - 1] = 0;
+    }
 
     /*
     ** Save symbol address
